@@ -30,6 +30,8 @@
 #include "Engine/Runtime/FortniteGame/Public/Creative/FortMinigame.h"
 #include "Engine/Runtime/FortniteGame/Public/Weapons/FortDecoTool.h"
 
+void InitializeMMRInfos();
+
 inline __int64 (*RandomCrashOG)(__int64 a1);
 __int64 RandomCrash(__int64 a1)
 {
