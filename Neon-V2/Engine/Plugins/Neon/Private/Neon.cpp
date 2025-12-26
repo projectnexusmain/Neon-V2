@@ -30,6 +30,8 @@
 #include "Engine/Runtime/FortniteGame/Public/Creative/FortMinigame.h"
 #include "Engine/Runtime/FortniteGame/Public/Weapons/FortDecoTool.h"
 
+void InitializeMMRInfos();
+
 inline __int64 (*RandomCrashOG)(__int64 a1);
 __int64 RandomCrash(__int64 a1)
 {
@@ -417,13 +419,20 @@ void UNeon::Initialize()
 			else 
 				WorldName = (Fortnite_Version >= 23.00) ? L"open Asteria_Terrain" : WorldName;
 		
-			ExecuteConsoleCommand(GetWorld(), WorldName, nullptr);
+                        ExecuteConsoleCommand(GetWorld(), WorldName, nullptr);
 
-			ExecuteConsoleCommand(GetWorld(), L"log LogFortPlacement VeryVerbose", nullptr);
-			ExecuteConsoleCommand(GetWorld(), L"log LogFortWorld VeryVerbose", nullptr);
-			ExecuteConsoleCommand(GetWorld(), L"log LogAthenaBots VeryVerbose", nullptr);
-		}
-	}
+                        ExecuteConsoleCommand(GetWorld(), L"log LogFortPlacement VeryVerbose", nullptr);
+                        ExecuteConsoleCommand(GetWorld(), L"log LogFortWorld VeryVerbose", nullptr);
+                        ExecuteConsoleCommand(GetWorld(), L"log LogAthenaBots VeryVerbose", nullptr);
+
+                        static bool bInitializedMMR = false;
+                        if (!bInitializedMMR)
+                        {
+                                InitializeMMRInfos();
+                                bInitializedMMR = true;
+                        }
+                }
+        }
 }
  
 void InitializeMMRInfos()

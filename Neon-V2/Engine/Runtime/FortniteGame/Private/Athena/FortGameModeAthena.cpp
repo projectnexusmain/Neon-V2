@@ -102,7 +102,13 @@ bool AFortGameModeAthena::ReadyToStartMatch(FFrame& Stack, bool* Result)
         }
         
         GameState->SetPlaylist( Playlist );
-        if (Fortnite_Version >= 11.00 && Fortnite_Version <= 16.00) UFortServerBotManagerAthena::Init();
+
+        static bool bBotManagerInitialized = false;
+        if (!bBotManagerInitialized)
+        {
+            UFortServerBotManagerAthena::Init();
+            bBotManagerInitialized = true;
+        }
         return *Result = false;
     }
 
