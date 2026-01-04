@@ -78,42 +78,46 @@ void AFortMinigame::ChangeMinigameState(EFortMinigameState State)
     }
     this->SetWinningTeamIndex(WinningTeam);
 
-	switch (State)
-	{
-	
-	default:
-				 ChangeMinigameStateOG(this, State);
-		 FFortMinigameStatCollection Stats{};
-		 for (int i = 0; i < Players.Num(); i++)
-		 {
-			 auto Player = Cast<AFortPlayerStateAthena>(Players[i]);	
-			 this->SetWinningTeamIndex(0);
+    switch (State)
+    {
 
-			 FFortMinigamePlayerBucketStats BucketStats{};
-			 FFortMinigameStat Stat{};
-			 FFortMinigamePlayerStats PlayerStats{};
+    default:
+        {
+                ChangeMinigameStateOG(this, State);
+                FFortMinigameStatCollection Stats{};
+                for (int i = 0; i < Players.Num(); i++)
+                {
+                        auto Player = Cast<AFortPlayerStateAthena>(Players[i]);
+                        this->SetWinningTeamIndex(0);
 
-			 Stat.Count = 1;
+                        FFortMinigamePlayerBucketStats BucketStats{};
+                        FFortMinigameStat Stat{};
+                        FFortMinigamePlayerStats PlayerStats{};
 
-			 PlayerStats.Player = Player->GetUniqueId();
-			 PlayerStats.Stats.Add(Stat);
+                        Stat.Count = 1;
 
-			 BucketStats.BucketIndex = 0;
-			 BucketStats.Stats.Add(Stat);
+                        PlayerStats.Player = Player->GetUniqueId();
+                        PlayerStats.Stats.Add(Stat);
 
-			 Stats.PlayerBucketStats.Add(BucketStats);
-			 Stats.GroupStats.Stats.Add(Stat);
-			 Stats.PlayerStats.Add(PlayerStats);
-		 }
+                        BucketStats.BucketIndex = 0;
+                        BucketStats.Stats.Add(Stat);
 
-		 std::thread([this, State, Stats]()
-		 {
-			std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-			this->SetGameStats(Stats);
-			ChangeMinigameStateOG(this, State);
-		 }).detach();
-	case EFortMinigameState::Transitioning:
-	{
+                        Stats.PlayerBucketStats.Add(BucketStats);
+                        Stats.GroupStats.Stats.Add(Stat);
+                        Stats.PlayerStats.Add(PlayerStats);
+                }
+
+                std::thread([this, State, Stats]()
+                {
+                        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+                        this->SetGameStats(Stats);
+                        ChangeMinigameStateOG(this, State);
+                }).detach();
+
+                break;
+        }
+    case EFortMinigameState::Transitioning:
+        {
 		static auto AdvanceState = StaticFindObject<UFunction>("/Script/FortniteGame.FortMinigame.AdvanceState");
 		static auto HandleMinigameStarted = StaticFindObject<UFunction>("/Script/FortniteGame.FortMinigame.HandleMinigameStarted");
 		static auto HandleVolumeEditModeChange = StaticFindObject<UFunction>("/Script/FortniteGame.FortMinigame.HandleVolumeEditModeChange");

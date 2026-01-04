@@ -95,12 +95,18 @@ void AFortGameStateAthena::SetPlaylist(UFortPlaylistAthena* Playlist)
         }
     };
 
-   auto VolcanoFoundation = StaticLoadObject<ABuildingFoundation>("/Game/Athena/Maps/Athena_POI_Foundations.Athena_POI_Foundations.PersistentLevel.LF_Athena_POI_50x53_Volcano");
-   VolcanoFoundation->SetDynamicFoundationType(EDynamicFoundationType::Static);
-   VolcanoFoundation->SetbServerStreamedInLevel(true);
-   VolcanoFoundation->OnRep_ServerStreamedInLevel();
-   VolcanoFoundation->OnRep_DynamicFoundationRepData();
-   VolcanoFoundation->SetDynamicFoundationEnabled(true);
+   if (auto* VolcanoFoundation = StaticLoadObject<ABuildingFoundation>("/Game/Athena/Maps/Athena_POI_Foundations.Athena_POI_Foundations.PersistentLevel.LF_Athena_POI_50x53_Volcano"))
+   {
+       VolcanoFoundation->SetDynamicFoundationType(EDynamicFoundationType::Static);
+       VolcanoFoundation->SetbServerStreamedInLevel(true);
+       VolcanoFoundation->OnRep_ServerStreamedInLevel();
+       VolcanoFoundation->OnRep_DynamicFoundationRepData();
+       VolcanoFoundation->SetDynamicFoundationEnabled(true);
+   }
+   else
+   {
+       UE_LOG(LogGameState, Warning, "SetPlaylist: failed to load LF_Athena_POI_50x53_Volcano foundation asset");
+   }
 
        
     Load(UKismetMemLibrary::GetOffset(Playlist, "AdditionalLevels"), false);
