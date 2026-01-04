@@ -451,7 +451,7 @@ void InitializeMMRInfos()
         {
                 if (auto* AIServicePlayerBotsClass = StaticClassImpl("AthenaAIServicePlayerBots"))
                 {
-                        AIServicePlayerBots = AIServicePlayerBotsClass->GetDefaultObject<UAthenaAIServicePlayerBots>();
+                        AIServicePlayerBots = static_cast<UAthenaAIServicePlayerBots*>(AIServicePlayerBotsClass->GetClassDefaultObject());
                 }
         }
 
