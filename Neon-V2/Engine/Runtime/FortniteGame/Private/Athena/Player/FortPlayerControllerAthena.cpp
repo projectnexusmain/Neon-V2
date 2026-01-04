@@ -41,16 +41,16 @@ void AFortPlayerControllerAthena::ServerAcknowledgePossession(FFrame& Stack)
 
 		TimeMap[this] = std::chrono::steady_clock::now(); // for time alive
 
-		if (Fortnite_Version >= 11.00)
-		{
-			if (Fortnite_Version >= 14.00) UFortServerBotManagerAthena::SpawnAI();
+                UFortServerBotManagerAthena::SpawnAI();
 
-			GetXPComponent()->Set(
-		"FortPlayerControllerAthenaXPComponent", "bRegisteredWithQuestManager", true
-	);
-			GetXPComponent()->OnRep_bRegisteredWithQuestManager();
-			GetQuestManager(ESubGame::Athena)->InitializeQuestAbilities(GetMyFortPawn());
-		}
+                if (Fortnite_Version >= 11.00)
+                {
+                        GetXPComponent()->Set(
+                                "FortPlayerControllerAthenaXPComponent", "bRegisteredWithQuestManager", true
+                        );
+                        GetXPComponent()->OnRep_bRegisteredWithQuestManager();
+                        GetQuestManager(ESubGame::Athena)->InitializeQuestAbilities(GetMyFortPawn());
+                }
 	}
 
 	if (Fortnite_Version >= 11.00)

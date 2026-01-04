@@ -30,6 +30,8 @@
 #include "Engine/Runtime/FortniteGame/Public/Creative/FortMinigame.h"
 #include "Engine/Runtime/FortniteGame/Public/Weapons/FortDecoTool.h"
 
+void InitializeMMRInfos();
+
 inline __int64 (*RandomCrashOG)(__int64 a1);
 __int64 RandomCrash(__int64 a1)
 {
@@ -417,31 +419,61 @@ void UNeon::Initialize()
 			else 
 				WorldName = (Fortnite_Version >= 23.00) ? L"open Asteria_Terrain" : WorldName;
 		
-			ExecuteConsoleCommand(GetWorld(), WorldName, nullptr);
+                        ExecuteConsoleCommand(GetWorld(), WorldName, nullptr);
 
-			ExecuteConsoleCommand(GetWorld(), L"log LogFortPlacement VeryVerbose", nullptr);
-			ExecuteConsoleCommand(GetWorld(), L"log LogFortWorld VeryVerbose", nullptr);
-			ExecuteConsoleCommand(GetWorld(), L"log LogAthenaBots VeryVerbose", nullptr);
-		}
-	}
+                        ExecuteConsoleCommand(GetWorld(), L"log LogFortPlacement VeryVerbose", nullptr);
+                        ExecuteConsoleCommand(GetWorld(), L"log LogFortWorld VeryVerbose", nullptr);
+                        ExecuteConsoleCommand(GetWorld(), L"log LogAthenaBots VeryVerbose", nullptr);
+
+                        static bool bInitializedMMR = false;
+                        if (!bInitializedMMR)
+                        {
+                                InitializeMMRInfos();
+                                bInitializedMMR = true;
+                        }
+                }
+        }
 }
  
 void InitializeMMRInfos()
 {
-	UAthenaAIServicePlayerBots* AIServicePlayerBots = StaticClassImpl("AthenaAIBlueprintLibrary")->GetClassDefaultObject()->CallFunc<UAthenaAIServicePlayerBots*>("AthenaAIBlueprintLibrary", "GetAIServicePlayerBots", GetWorld());
-	AIServicePlayerBots->SetDefaultBotAISpawnerData(StaticLoadObject<UClass>("/Game/Athena/AI/Phoebe/BP_AISpawnerData_Phoebe.BP_AISpawnerData_Phoebe_C"));
-    
-	FMMRSpawningInfo NewSpawningInfo{};
-	NewSpawningInfo.BotSpawningDataInfoTargetELO = 1400.f;
-	NewSpawningInfo.BotSpawningDataInfoWeight = 100.f;
-	NewSpawningInfo.NumBotsToSpawn = 60;
-	NewSpawningInfo.AISpawnerData = AIServicePlayerBots->GetDefaultBotAISpawnerData();
+        UAthenaAIServicePlayerBots* AIServicePlayerBots = nullptr;
 
-	AIServicePlayerBots->SetDefaultAISpawnerDataComponentList(UFortAthenaAISpawnerData::CreateComponentListFromClass(AIServicePlayerBots->GetDefaultBotAISpawnerData(), GetWorld()));
-	AIServicePlayerBots->GetCachedMMRSpawningInfo().SpawningInfos.Add(NewSpawningInfo);
-	AIServicePlayerBots->SetGamePhaseToStartSpawning(EAthenaGamePhase::Warmup);
-	AIServicePlayerBots->SetbWaitForNavmeshToBeLoaded(false);
-	*reinterpret_cast<bool*>(__int64(AIServicePlayerBots) + 0x820) = true; //bCanActivateBrain
+        if (auto* AthenaAIBlueprintLibraryClass = StaticClassImpl("AthenaAIBlueprintLibrary"))
+        {
+                if (auto* AthenaAIBlueprintLibrary = AthenaAIBlueprintLibraryClass->GetClassDefaultObject())
+                {
+                        AIServicePlayerBots = AthenaAIBlueprintLibrary->CallFunc<UAthenaAIServicePlayerBots*>("AthenaAIBlueprintLibrary", "GetAIServicePlayerBots", GetWorld());
+                }
+        }
+
+        if (!AIServicePlayerBots)
+        {
+                if (auto* AIServicePlayerBotsClass = StaticClassImpl("AthenaAIServicePlayerBots"))
+                {
+                        AIServicePlayerBots = static_cast<UAthenaAIServicePlayerBots*>(AIServicePlayerBotsClass->GetClassDefaultObject());
+                }
+        }
+
+        if (!AIServicePlayerBots)
+        {
+                UE_LOG(LogNeon, Warning, TEXT("InitializeMMRInfos: unable to locate AI service; skipping bot MMR setup"));
+                return;
+        }
+
+        AIServicePlayerBots->SetDefaultBotAISpawnerData(StaticLoadObject<UClass>("/Game/Athena/AI/Phoebe/BP_AISpawnerData_Phoebe.BP_AISpawnerData_Phoebe_C"));
+
+        FMMRSpawningInfo NewSpawningInfo{};
+        NewSpawningInfo.BotSpawningDataInfoTargetELO = 1400.f;
+        NewSpawningInfo.BotSpawningDataInfoWeight = 100.f;
+        NewSpawningInfo.NumBotsToSpawn = 60;
+        NewSpawningInfo.AISpawnerData = AIServicePlayerBots->GetDefaultBotAISpawnerData();
+
+        AIServicePlayerBots->SetDefaultAISpawnerDataComponentList(UFortAthenaAISpawnerData::CreateComponentListFromClass(AIServicePlayerBots->GetDefaultBotAISpawnerData(), GetWorld()));
+        AIServicePlayerBots->GetCachedMMRSpawningInfo().SpawningInfos.Add(NewSpawningInfo);
+        AIServicePlayerBots->SetGamePhaseToStartSpawning(EAthenaGamePhase::Warmup);
+        AIServicePlayerBots->SetbWaitForNavmeshToBeLoaded(false);
+        *reinterpret_cast<bool*>(__int64(AIServicePlayerBots) + 0x820) = true; //bCanActivateBrain
 }
 
 void UNeon::ChangeState(const wchar_t* State) 
@@ -768,20 +800,26 @@ void UNeon::PostHook()
 	if (Fortnite_Version >= 11.50)
 	{
 		auto Context = Memcury::Scanner::FindPattern("E8 ? ? ? ? 84 C0 0F 85 ? ? ? ? 80 3D ? ? ? ? ? 0F 82 ? ? ? ? 49 8B 46 ? 48 8D 54 24").Get();
-		for (int i = 0; i < 2; i++) {
-			Hook->Address = Context + 7 + i;
-			Hook->Byte = (i == 0) ? 0x0F : 0x8D;
-			UKismetHookingLibrary::Hook(Hook, EHook::Byte);
-		}
-		
-		if (Fortnite_Version == 15.50)
+		if (Context)
 		{
-			Hook->Address = IMAGEBASE + 0x1F646A0;
-			Hook->Original = reinterpret_cast<void**>(&RandomCrashOG);
-			Hook->Detour = RandomCrash;
-			UKismetHookingLibrary::Hook(Hook, EHook::Address);
+			for (int i = 0; i < 2; i++) {
+				Hook->Address = Context + 7 + i;
+				Hook->Byte = (i == 0) ? 0x0F : 0x8D;
+				UKismetHookingLibrary::Hook(Hook, EHook::Byte);
+			}
+		}
+		else
+		{
+			UE_LOG(LogNeon, Warning, TEXT("PostHook: skipping byte patch; pattern not found"));
 		}
 	}
+        if (Fortnite_Version == 15.50)
+        {
+                Hook->Address = IMAGEBASE + 0x1F646A0;
+                Hook->Original = reinterpret_cast<void**>(&RandomCrashOG);
+                Hook->Detour = RandomCrash;
+                UKismetHookingLibrary::Hook(Hook, EHook::Address);
+        }
 	
 	if (bOutpost)
 	{
