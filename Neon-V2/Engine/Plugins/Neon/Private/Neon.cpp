@@ -800,12 +800,19 @@ void UNeon::PostHook()
 	if (Fortnite_Version >= 11.50)
 	{
 		auto Context = Memcury::Scanner::FindPattern("E8 ? ? ? ? 84 C0 0F 85 ? ? ? ? 80 3D ? ? ? ? ? 0F 82 ? ? ? ? 49 8B 46 ? 48 8D 54 24").Get();
-		for (int i = 0; i < 2; i++) {
-			Hook->Address = Context + 7 + i;
-			Hook->Byte = (i == 0) ? 0x0F : 0x8D;
-			UKismetHookingLibrary::Hook(Hook, EHook::Byte);
+		if (Context)
+		{
+			for (int i = 0; i < 2; i++) {
+				Hook->Address = Context + 7 + i;
+				Hook->Byte = (i == 0) ? 0x0F : 0x8D;
+				UKismetHookingLibrary::Hook(Hook, EHook::Byte);
+			}
 		}
-		
+		else
+		{
+			UE_LOG(LogNeon, Warning, TEXT("PostHook: skipping byte patch; pattern not found"));
+		}
+	}
 		if (Fortnite_Version == 15.50)
 		{
 			Hook->Address = IMAGEBASE + 0x1F646A0;
