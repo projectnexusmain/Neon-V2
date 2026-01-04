@@ -813,14 +813,13 @@ void UNeon::PostHook()
 			UE_LOG(LogNeon, Warning, TEXT("PostHook: skipping byte patch; pattern not found"));
 		}
 	}
-		if (Fortnite_Version == 15.50)
-		{
-			Hook->Address = IMAGEBASE + 0x1F646A0;
-			Hook->Original = reinterpret_cast<void**>(&RandomCrashOG);
-			Hook->Detour = RandomCrash;
-			UKismetHookingLibrary::Hook(Hook, EHook::Address);
-		}
-	}
+        if (Fortnite_Version == 15.50)
+        {
+                Hook->Address = IMAGEBASE + 0x1F646A0;
+                Hook->Original = reinterpret_cast<void**>(&RandomCrashOG);
+                Hook->Detour = RandomCrash;
+                UKismetHookingLibrary::Hook(Hook, EHook::Address);
+        }
 	
 	if (bOutpost)
 	{
