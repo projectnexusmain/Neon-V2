@@ -52,7 +52,10 @@ void UFortServerBotManagerAthena::SpawnAI()
     AISystem->SpawnAI("Sunflower", "15");
 
     auto PlayerStarts = UGameplayStatics::GetAllActorsOfClass(GetWorld(), AFortPlayerStartWarmup::StaticClass());
-    for (int32 i = 0; i < 50; i++)
+    const int32 MaxBots = Fortnite_Version == 12.41 ? 100 : 50;
+    const int32 SpawnCount = FMath::Min<int32>(MaxBots, PlayerStarts.Num());
+
+    for (int32 i = 0; i < SpawnCount; i++)
     {
         auto Start = PlayerStarts[i];
         
